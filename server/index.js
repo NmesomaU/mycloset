@@ -24,12 +24,14 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
+// --- GET ALL ITEMS ---
 app.get('/all-items', async (req, res) => {
   const { data, error } = await supabase.from('items').select('*');
   if (error) return res.status(500).json(error);
   res.json(data);
 });
 
+// --- ADD NEW ITEM ---
 app.post('/add-item', upload.single('image'), async (req, res) => {
   const imageUrl = req.file ? req.file.path : req.body.image;
   const { data, error } = await supabase.from('items').insert([{ 
@@ -40,6 +42,37 @@ app.post('/add-item', upload.single('image'), async (req, res) => {
   res.json(data[0]);
 });
 
+// --- DELETE SINGLE ITEM ---
+app.delete('/delete-item/:id', async (req, res) => {
+  const { id } = req.params;
+  const { error } = await supabase
+    .from('items')
+    .delete()
+    .eq('id', id);
+
+  if (error) return res.status(500).json(error);
+  res.json({ message: "Item deleted successfully" });
+});
+
+// --- CLEAR ENTIRE INVENTORY ---
+app.delete('/delete-item/:id', async (req, res) => {
+  const itemId = Number(req.params.id); // Convert "13" to 13
+
+  const { error } = await supabase
+    .from('items')
+    .delete()
+    .eq('id', itemId);
+
+  if (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+
+  res.json({ message: "Deleted" });
+});
+  
+
+// --- SHUFFLE OUTFIT ---
 app.get('/shuffle', async (req, res) => {
   const categories = ['coat', 'top', 'bottom', 'shoes', 'bag', 'accessory'];
   const outfit = {};
@@ -50,10 +83,11 @@ app.get('/shuffle', async (req, res) => {
   res.json(outfit);
 });
 
+// --- RANDOM BY CATEGORY ---
 app.get('/random/:category', async (req, res) => {
   const { data } = await supabase.from('items').select('*').eq('category', req.params.category);
   res.json(data?.length > 0 ? data[Math.floor(Math.random() * data.length)] : null);
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
