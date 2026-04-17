@@ -70,17 +70,13 @@ function Closet() {
   };
 
  const deleteItem = async (id, e) => {
-  e.stopPropagation();
-  if (window.confirm("Delete this?")) {
-    const res = await fetch(`${API_BASE}/delete-item/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      // Use 'id' here to match your Supabase column
-      setInventory(inventory.filter(item => item.id !== id));
-    } else {
-      alert("Check Render logs - Delete failed.");
-    }
-  }
-};
+  e.stopPropagation(); // Stops the app from selecting the item as an outfit
+  
+  if (window.confirm("Delete this item permanently?")) {
+    try {
+      const res = await fetch(`${API_BASE}/delete-item/${id}`, { 
+        method: 'DELETE' 
+      });
 
       if (res.ok) {
         // SUCCESS: Remove the item from the UI immediately
